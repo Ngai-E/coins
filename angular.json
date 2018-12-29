@@ -32,7 +32,7 @@
               "node_modules/popper.js/dist/umd/popper.min.js",
               "node_modules/bootstrap/dist/js/bootstrap.min.js",
               "src/bowser.min.js",
-              "src/chartist.min.js"
+              "src/chartist.min.js",
             ]
           },
           "configurations": {

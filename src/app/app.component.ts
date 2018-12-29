@@ -75,7 +75,7 @@ function fetchCoins(){
 			//console.log(asset.data);
 			assets = asset.data;
 			timestamps = asset.timestamp;
-			plotChart();
+			plotChart(5);
 			fillCoinsHTML();     //design coins html
 		}
 	});
@@ -132,43 +132,47 @@ function plotgraphs(url, id){
 function plotChart(x){
 	let serie = [];
 	let label = [];
+	let sum = 0;
+	//let i;
 
 	//loop through the asset to get the top x
-	for (let i = 0; i < x 0; i++) {
-		serie[i] = Number(asset[i].marketCapUsd);
-		label[i] = asset[i].name;
+	for (var i = x - 1; i >= 0; i--) {
+		serie[i] = Number(assets[i].marketCapUsd);
+		//console.log(serie[i])
+		label[i] = assets[i].name;
+		sum += serie[i];
+
 	}
 
-	//plot chart
-	var data = {
-	  labels: label,
-	  series: serie
-	};
-
-	var options = {
-	  labelInterpolationFnc: function(value) {
-	    return value[0]
-	  }
-	};
-
-	var responsiveOptions = [
-	  ['screen and (min-width: 640px)', {
-	    chartPadding: 30,
-	    labelOffset: 100,
-	    labelDirection: 'explode',
-	    labelInterpolationFnc: function(value) {
-	      return value;
-	    }
-	  }],
-	  ['screen and (min-width: 1024px)', {
-	    labelOffset: 80,
-	    chartPadding: 20
-	  }]
-	];
-
-	new Chartist.Pie('#topChart', data, options, responsiveOptions);
+	//get percentages
+	for (var i = x - 1; i >= 0; i--) {
+		serie[i] = ((serie[i] / sum) * 100).toFixed(1);
+		label[i] = `${label[i]} (${serie[i]}%)`;
+		//console.log(serie[i])
 	}
-//end plot for top five crypto currencies
+	//console.log(sum)
+	//console.log(serie.length)
+
+	//plot
+	new Chart(document.getElementById("pie-chart").getContext('2d'), {
+    type: 'pie',
+    data: {
+      labels:label,
+      datasets: [{
+        label: "Population (millions)",
+        backgroundColor: ["#3e95cd", "#8e5ea2","#3cba9f","#e8c3b9","#c45850"],
+        data: serie
+      }]
+    },
+    options: {
+      title: {
+        display: true,
+        text: 'Top Five Crypto Currencies By Market Capitalization'
+      }
+    }
+});
+	
+}//end plot for top five crypto currencies
 
 //change colour
 function highlightChange(percent){
@@ -200,8 +204,11 @@ function fillCoinsHTML(asset = assets){
             <p class="card-text">
               <span style="display: block;"><b>price: ${coin.priceUsd} </b></span>
               <span style="display: block;">${highlightChange(Number(coin.changePercent24Hr).toFixed(2))}</span>
+              <span style="display: block;">Circulating Supply: ${Number(coin.supply).toFixed(2)}</span>
+              <span style="display: block;">Volume(24Hr): ${Number(coin.volumeUsd24Hr).toFixed(2)}</span>
+              <span style="display: block;">Market Cap: ${Number(coin.marketCapUsd).toFixed(2)}</span>
             </p>
-            <div class = 'graph' id= '${coin.id}'>See Variations</div>`;
+            <div class = 'graph' id= '${coin.id}'>Price Graph (7d)</div>`;
 
         card.append(logo);
         card.append(cardBody);
@@ -215,7 +222,7 @@ function fillCoinsHTML(asset = assets){
 	//display the graph
 	let graph = document.getElementsByClassName('graph');
 	for (var div = 0; div < graph.length; div++) {
-		console.log(graph[div].id);
+		//console.log(graph[div].id);
 		plotgraphs(`https://api.coincap.io/v2/assets/${graph[div].id}/history?interval=h12&start=
 			${new Date().setDate(new Date().getDate()-7)}&end=${new Date().getTime()}`, graph[div].id)
 	}
